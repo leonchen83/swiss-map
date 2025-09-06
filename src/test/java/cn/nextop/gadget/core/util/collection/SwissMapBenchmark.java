@@ -1,6 +1,7 @@
 package cn.nextop.gadget.core.util.collection;
 
 import java.util.HashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
@@ -56,7 +57,10 @@ public class SwissMapBenchmark {
 	
 	@State(Scope.Benchmark)
 	public static class Get {
-		private int n = 1024;
+		private int n1 = 1024;
+		private int n2 = 32;
+		private int n3 = ThreadLocalRandom.current().nextInt(n2);
+		private Object key;
 		private float ex = 0.25f;
 		private SwissMap<Object, Object> map64;
 		private SwissMap<Object, Object> map128;
@@ -67,19 +71,20 @@ public class SwissMapBenchmark {
 		
 		@Setup
 		public void setup() {
-			map64 = new SwissMap<>(n, ex, new SwissMap.Platform64());
-			map128 = new SwissMap<>(n, ex, new SwissMap.Platform128());
-			map256 = new SwissMap<>(n, ex, new SwissMap.Platform256());
-			map64ex = new SwissMap<>(n, ex, new SwissMap.Platform64Ex());
-			hashmap = new HashMap<>(n * 2);
-			objects = IntStream.range(0, n).mapToObj(x -> new Object()).toArray();
-			for (int i = 0; i < n; i++) {
+			map64 = new SwissMap<>(n1, ex, new SwissMap.Platform64());
+			map128 = new SwissMap<>(n1, ex, new SwissMap.Platform128());
+			map256 = new SwissMap<>(n1, ex, new SwissMap.Platform256());
+			map64ex = new SwissMap<>(n1, ex, new SwissMap.Platform64Ex());
+			hashmap = new HashMap<>(n1 * 2);
+			objects = IntStream.range(0, n2).mapToObj(x -> new Object()).toArray();
+			for (int i = 0; i < n2; i++) {
 				map64.put(objects[i], objects[i]);
 				map128.put(objects[i], objects[i]);
 				map256.put(objects[i], objects[i]);
 				map64ex.put(objects[i], objects[i]);
 				hashmap.put(objects[i], objects[i]);
 			}
+			key = objects[n3];
 		}
 	}
 	
@@ -107,9 +112,7 @@ public class SwissMapBenchmark {
 	
 	@Benchmark
 	public void benchSwissMap64Get(Get get, Blackhole hole) {
-		for (int i = 0; i < get.n; i++) {
-			hole.consume(get.map64.get(get.objects[i]));
-		}
+		hole.consume(get.map64.get(get.key));
 	}
 	
 	@Benchmark
@@ -133,9 +136,7 @@ public class SwissMapBenchmark {
 	
 	@Benchmark
 	public void benchSwissMap64ExGet(Get get, Blackhole hole) {
-		for (int i = 0; i < get.n; i++) {
-			hole.consume(get.map64ex.get(get.objects[i]));
-		}
+		hole.consume(get.map64ex.get(get.key));
 	}
 	
 	@Benchmark
@@ -159,9 +160,7 @@ public class SwissMapBenchmark {
 	
 	@Benchmark
 	public void benchSwissMap128Get(Get get, Blackhole hole) {
-		for (int i = 0; i < get.n; i++) {
-			hole.consume(get.map128.get(get.objects[i]));
-		}
+		hole.consume(get.map128.get(get.key));
 	}
 	
 	@Benchmark
@@ -185,9 +184,7 @@ public class SwissMapBenchmark {
 	
 	@Benchmark
 	public void benchSwissMap256Get(Get get, Blackhole hole) {
-		for (int i = 0; i < get.n; i++) {
-			hole.consume(get.map256.get(get.objects[i]));
-		}
+		hole.consume(get.map256.get(get.key));
 	}
 	
 	@Benchmark
@@ -211,9 +208,7 @@ public class SwissMapBenchmark {
 	
 	@Benchmark
 	public void benchHashMapGet(Get get, Blackhole hole) {
-		for (int i = 0; i < get.n; i++) {
-			hole.consume(get.hashmap.get(get.objects[i]));
-		}
+		hole.consume(get.hashmap.get(get.key));
 	}
 	
 	@Benchmark
